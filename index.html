@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KYOTO — Spotify Connect</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg:           #0c0b09;
+    --surface:      #161410;
+    --surface-2:    #1e1b16;
+    --amber:        #c8922a;
+    --amber-light:  #e8b84b;
+    --amber-dim:    rgba(200, 146, 42, 0.12);
+    --text:         #ede5d5;
+    --text-muted:   #7a7060;
+    --text-dim:     #4a4438;
+    --success:      #4a9e6b;
+    --error:        #c05050;
+    --border:       rgba(200, 146, 42, 0.12);
+  }
+
+  html, body {
+    min-height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 300;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Grain overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  /* Ambient glow */
+  body::after {
+    content: '';
+    position: fixed;
+    top: -20%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 400px;
+    background: radial-gradient(ellipse, rgba(200, 146, 42, 0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.5rem;
+    position: relative;
+  }
+
+  /* ── Wordmark ── */
+  .wordmark {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.8rem;
+    font-weight: 400;
+    letter-spacing: 0.5em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 3.5rem;
+    opacity: 0.8;
+    animation: fadeDown 0.6s ease both;
+  }
+
+  /* ── Card ── */
+  .card {
+    width: 100%;
+    max-width: 440px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 2.5rem 2.5rem 2rem;
+    animation: fadeUp 0.6s ease 0.1s both;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Decorative corner line */
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 40px; height: 2px;
+    background: var(--amber);
+    opacity: 0.6;
+  }
+
+  .card-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+  }
+
+  .card-icon.success { background: rgba(74, 158, 107, 0.12); }
+  .card-icon.error   { background: rgba(192, 80, 80, 0.12); }
+  .card-icon.waiting { background: var(--amber-dim); }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-weight: 400;
+    line-height: 1.3;
+    margin-bottom: 0.6rem;
+    color: var(--text);
+  }
+
+  .subtitle {
+    font-size: 0.825rem;
+    color: var(--text-muted);
+    line-height: 1.65;
+    margin-bottom: 2rem;
+    font-weight: 300;
+  }
+
+  .subtitle strong {
+    color: var(--text);
+    font-weight: 400;
+  }
+
+  /* ── Code display ── */
+  .code-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--amber);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+  }
+
+  .code-box {
+    background: rgba(0,0,0,0.35);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 0.9rem 1rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.72rem;
+    color: var(--amber-light);
+    word-break: break-all;
+    line-height: 1.6;
+    margin-bottom: 0.875rem;
+    letter-spacing: 0.02em;
+    user-select: all;
+    cursor: text;
+  }
+
+  /* ── Copy button ── */
+  .copy-btn {
+    width: 100%;
+    padding: 0.9rem 1rem;
+    background: var(--amber);
+    color: #0c0b09;
+    border: none;
+    border-radius: 2px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.825rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .copy-btn:hover  { background: var(--amber-light); }
+  .copy-btn:active { transform: scale(0.99); }
+
+  .copy-btn.copied {
+    background: var(--success);
+    color: #fff;
+  }
+
+  .copy-btn svg {
+    width: 14px; height: 14px;
+    flex-shrink: 0;
+  }
+
+  /* ── Divider ── */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin-bottom: 1.5rem;
+  }
+
+  /* ── Steps ── */
+  .steps { display: flex; flex-direction: column; gap: 0.75rem; }
+
+  .step {
+    display: flex;
+    gap: 0.875rem;
+    align-items: flex-start;
+  }
+
+  .step-num {
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    color: var(--amber);
+    padding-top: 0.15rem;
+    flex-shrink: 0;
+    width: 1.5em;
+  }
+
+  .step-text {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    line-height: 1.55;
+    font-weight: 300;
+  }
+
+  .step-text strong {
+    color: var(--text);
+    font-weight: 400;
+  }
+
+  /* ── Error state ── */
+  .error-card h1 { color: var(--error); }
+
+  .error-detail {
+    background: rgba(192, 80, 80, 0.08);
+    border: 1px solid rgba(192, 80, 80, 0.2);
+    border-radius: 2px;
+    padding: 0.75rem 1rem;
+    font-size: 0.8rem;
+    color: #e08080;
+    font-family: 'Courier New', monospace;
+    margin-bottom: 1.5rem;
+    word-break: break-all;
+  }
+
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    color: var(--amber);
+    text-decoration: none;
+    font-weight: 400;
+    transition: color 0.15s;
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-family: 'Outfit', sans-serif;
+    padding: 0;
+  }
+
+  .back-btn:hover { color: var(--amber-light); }
+
+  /* ── Waiting state ── */
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid var(--amber-dim);
+    border-top-color: var(--amber);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    display: inline-block;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    margin-top: 2rem;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+    animation: fadeUp 0.6s ease 0.3s both;
+  }
+
+  /* ── Animations ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 0.8; transform: translateY(0); }
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* ── Mobile ── */
+  @media (max-width: 480px) {
+    .card { padding: 2rem 1.5rem 1.75rem; }
+    h1 { font-size: 1.25rem; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="wordmark">KYOTO</div>
+  <div class="card" id="card"></div>
+  <div class="footer">kyoto player — spotify connect</div>
+</div>
+
+<script>
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const code  = params.get('code');
+  const error = params.get('error');
+  const card  = document.getElementById('card');
+
+  // ── Icons ──
+  const iconCheck = `<svg viewBox="0 0 24 24" fill="none" stroke="#4a9e6b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+  const iconX     = `<svg viewBox="0 0 24 24" fill="none" stroke="#c05050" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+  const iconClock = `<svg viewBox="0 0 24 24" fill="none" stroke="#c8922a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+  const iconCopy  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+  const iconDone  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+
+  function copyCode(code) {
+    navigator.clipboard.writeText(code).then(() => {
+      const btn = document.getElementById('copy-btn');
+      btn.classList.add('copied');
+      btn.innerHTML = `${iconDone} Copied`;
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.innerHTML = `${iconCopy} Copy authorisation code`;
+      }, 2500);
+    });
+  }
+
+  if (code) {
+    // ── Success state ──
+    card.innerHTML = `
+      <div class="card-icon success">${iconCheck}</div>
+      <h1>Authorisation complete</h1>
+      <p class="subtitle">
+        Copy the code below and paste it into the
+        <strong>KYOTO setup page</strong> at
+        <strong>http://10.10.10.1/setup</strong>
+      </p>
+
+      <div class="code-label">Authorisation code</div>
+      <div class="code-box" id="code-display">${code}</div>
+
+      <button class="copy-btn" id="copy-btn" onclick="copyCode('${code}')">
+        ${iconCopy} Copy authorisation code
+      </button>
+
+      <div class="divider"></div>
+
+      <div class="steps">
+        <div class="step">
+          <span class="step-num">01</span>
+          <span class="step-text">Switch to the <strong>KYOTO setup tab</strong> in your browser</span>
+        </div>
+        <div class="step">
+          <span class="step-num">02</span>
+          <span class="step-text">Paste the code into the <strong>Authorisation Code</strong> field</span>
+        </div>
+        <div class="step">
+          <span class="step-num">03</span>
+          <span class="step-text">Tap <strong>Connect</strong> — KYOTO will exchange the code for tokens automatically</span>
+        </div>
+        <div class="step">
+          <span class="step-num">04</span>
+          <span class="step-text">You won't need to do this again — tokens refresh silently in the background</span>
+        </div>
+      </div>
+    `;
+
+    // expose for onclick
+    window.copyCode = copyCode;
+
+  } else if (error) {
+    // ── Error state ──
+    card.classList.add('error-card');
+    card.innerHTML = `
+      <div class="card-icon error">${iconX}</div>
+      <h1>Authorisation failed</h1>
+      <p class="subtitle">Spotify returned an error. Please go back and try again.</p>
+      <div class="error-detail">${error}</div>
+      <button class="back-btn" onclick="history.back()">
+        ← Go back
+      </button>
+    `;
+
+  } else {
+    // ── Waiting / no params state ──
+    card.innerHTML = `
+      <div class="card-icon waiting">${iconClock}</div>
+      <h1>Waiting for Spotify</h1>
+      <p class="subtitle">
+        Complete the authorisation in the Spotify window.<br>
+        This page will receive the code automatically.
+      </p>
+      <div style="display:flex;align-items:center;gap:0.75rem;color:var(--text-muted);font-size:0.8rem;">
+        <div class="spinner"></div>
+        Listening for callback…
+      </div>
+    `;
+  }
+})();
+</script>
+</body>
+</html>
