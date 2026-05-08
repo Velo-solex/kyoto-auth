@@ -2,418 +2,125 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>KYOTO — Spotify Connect</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,700;1,400&family=Josefin+Sans:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
-  :root {
-    --bg:           #0c0b09;
-    --surface:      #161410;
-    --surface-2:    #1e1b16;
-    --amber:        #c8922a;
-    --amber-light:  #e8b84b;
-    --amber-dim:    rgba(200, 146, 42, 0.12);
-    --text:         #ede5d5;
-    --text-muted:   #7a7060;
-    --text-dim:     #4a4438;
-    --success:      #4a9e6b;
-    --error:        #c05050;
-    --border:       rgba(200, 146, 42, 0.12);
-  }
-
-  html, body {
-    min-height: 100%;
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Outfit', sans-serif;
-    font-weight: 300;
-    -webkit-font-smoothing: antialiased;
-  }
-
-  /* Grain overlay */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
-    pointer-events: none;
-    z-index: 100;
-  }
-
-  /* Ambient glow */
-  body::after {
-    content: '';
-    position: fixed;
-    top: -20%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 600px;
-    height: 400px;
-    background: radial-gradient(ellipse, rgba(200, 146, 42, 0.06) 0%, transparent 70%);
-    pointer-events: none;
-  }
-
-  .page {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem 1.5rem;
-    position: relative;
-  }
-
-  /* ── Wordmark ── */
-  .wordmark {
-    font-family: 'Playfair Display', serif;
-    font-size: 0.8rem;
-    font-weight: 400;
-    letter-spacing: 0.5em;
-    text-transform: uppercase;
-    color: var(--amber);
-    margin-bottom: 3.5rem;
-    opacity: 0.8;
-    animation: fadeDown 0.6s ease both;
-  }
-
-  /* ── Card ── */
-  .card {
-    width: 100%;
-    max-width: 440px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    padding: 2.5rem 2.5rem 2rem;
-    animation: fadeUp 0.6s ease 0.1s both;
-    position: relative;
-    overflow: hidden;
-  }
-
-  /* Decorative corner line */
-  .card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0;
-    width: 40px; height: 2px;
-    background: var(--amber);
-    opacity: 0.6;
-  }
-
-  .card-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 1.5rem;
-    font-size: 1.1rem;
-  }
-
-  .card-icon.success { background: rgba(74, 158, 107, 0.12); }
-  .card-icon.error   { background: rgba(192, 80, 80, 0.12); }
-  .card-icon.waiting { background: var(--amber-dim); }
-
-  h1 {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.4rem;
-    font-weight: 400;
-    line-height: 1.3;
-    margin-bottom: 0.6rem;
-    color: var(--text);
-  }
-
-  .subtitle {
-    font-size: 0.825rem;
-    color: var(--text-muted);
-    line-height: 1.65;
-    margin-bottom: 2rem;
-    font-weight: 300;
-  }
-
-  .subtitle strong {
-    color: var(--text);
-    font-weight: 400;
-  }
-
-  /* ── Code display ── */
-  .code-label {
-    font-size: 0.65rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--amber);
-    font-weight: 500;
-    margin-bottom: 0.5rem;
-  }
-
-  .code-box {
-    background: rgba(0,0,0,0.35);
-    border: 1px solid var(--border);
-    border-radius: 2px;
-    padding: 0.9rem 1rem;
-    font-family: 'Courier New', monospace;
-    font-size: 0.72rem;
-    color: var(--amber-light);
-    word-break: break-all;
-    line-height: 1.6;
-    margin-bottom: 0.875rem;
-    letter-spacing: 0.02em;
-    user-select: all;
-    cursor: text;
-  }
-
-  /* ── Copy button ── */
-  .copy-btn {
-    width: 100%;
-    padding: 0.9rem 1rem;
-    background: var(--amber);
-    color: #0c0b09;
-    border: none;
-    border-radius: 2px;
-    font-family: 'Outfit', sans-serif;
-    font-size: 0.825rem;
-    font-weight: 500;
-    letter-spacing: 0.06em;
-    cursor: pointer;
-    transition: background 0.2s ease, transform 0.1s ease;
-    margin-bottom: 2rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-  }
-
-  .copy-btn:hover  { background: var(--amber-light); }
-  .copy-btn:active { transform: scale(0.99); }
-
-  .copy-btn.copied {
-    background: var(--success);
-    color: #fff;
-  }
-
-  .copy-btn svg {
-    width: 14px; height: 14px;
-    flex-shrink: 0;
-  }
-
-  /* ── Divider ── */
-  .divider {
-    height: 1px;
-    background: var(--border);
-    margin-bottom: 1.5rem;
-  }
-
-  /* ── Steps ── */
-  .steps { display: flex; flex-direction: column; gap: 0.75rem; }
-
-  .step {
-    display: flex;
-    gap: 0.875rem;
-    align-items: flex-start;
-  }
-
-  .step-num {
-    font-size: 0.65rem;
-    font-weight: 500;
-    letter-spacing: 0.1em;
-    color: var(--amber);
-    padding-top: 0.15rem;
-    flex-shrink: 0;
-    width: 1.5em;
-  }
-
-  .step-text {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    line-height: 1.55;
-    font-weight: 300;
-  }
-
-  .step-text strong {
-    color: var(--text);
-    font-weight: 400;
-  }
-
-  /* ── Error state ── */
-  .error-card h1 { color: var(--error); }
-
-  .error-detail {
-    background: rgba(192, 80, 80, 0.08);
-    border: 1px solid rgba(192, 80, 80, 0.2);
-    border-radius: 2px;
-    padding: 0.75rem 1rem;
-    font-size: 0.8rem;
-    color: #e08080;
-    font-family: 'Courier New', monospace;
-    margin-bottom: 1.5rem;
-    word-break: break-all;
-  }
-
-  .back-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.8rem;
-    color: var(--amber);
-    text-decoration: none;
-    font-weight: 400;
-    transition: color 0.15s;
-    cursor: pointer;
-    background: none;
-    border: none;
-    font-family: 'Outfit', sans-serif;
-    padding: 0;
-  }
-
-  .back-btn:hover { color: var(--amber-light); }
-
-  /* ── Waiting state ── */
-  .spinner {
-    width: 18px; height: 18px;
-    border: 2px solid var(--amber-dim);
-    border-top-color: var(--amber);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    display: inline-block;
-  }
-
-  /* ── Footer ── */
-  .footer {
-    margin-top: 2rem;
-    font-size: 0.7rem;
-    color: var(--text-dim);
-    letter-spacing: 0.05em;
-    animation: fadeUp 0.6s ease 0.3s both;
-  }
-
-  /* ── Animations ── */
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(12px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  @keyframes fadeDown {
-    from { opacity: 0; transform: translateY(-8px); }
-    to   { opacity: 0.8; transform: translateY(0); }
-  }
-
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-
-  /* ── Mobile ── */
-  @media (max-width: 480px) {
-    .card { padding: 2rem 1.5rem 1.75rem; }
-    h1 { font-size: 1.25rem; }
-  }
+@font-face {
+  font-family: "Primana";
+  src: url("https://db.onlinewebfonts.com/t/8ff5dbfe2e1095805fdbc6c016fa6083.woff2") format("woff2"),
+       url("https://db.onlinewebfonts.com/t/8ff5dbfe2e1095805fdbc6c016fa6083.woff") format("woff");
+  font-weight: normal; font-style: normal; font-display: swap;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#faf5ee;--surface:#fff;--surface-hover:#f2ebe0;--border:#e0d5c4;
+  --text:#3a3228;--text-dim:#8a7e6e;--teal:#2db5a0;--teal-dark:#1a8c7a;
+  --coral:#f07856;--navy:#1a3352;--cream:#f5e6c8;--mustard:#e4b832;
+  --rose:#d46480;--radius:16px;--shadow:0 2px 12px rgba(58,50,40,.08)
+}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 16px 48px}
+.container{width:100%;max-width:480px}
+.header{text-align:center;padding-bottom:28px}
+.header h1{font-family:'Primana','Josefin Sans',sans-serif;font-size:2.2rem;font-weight:normal;color:var(--navy);letter-spacing:.15em;text-transform:uppercase}
+.header p{font-size:.7rem;color:var(--text-dim);margin-top:6px;text-transform:uppercase;letter-spacing:.2em;font-weight:500}
+.header-deco{width:60px;height:3px;background:var(--mustard);margin:10px auto 0;border-radius:2px}
+.card{background:var(--surface);border:2px solid var(--border);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow)}
+.status-badge{display:inline-flex;align-items:center;gap:7px;font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.12em;padding:5px 12px;border-radius:20px;margin-bottom:16px}
+.status-badge.success{background:rgba(45,181,160,.12);color:var(--teal-dark);border:1px solid rgba(45,181,160,.25)}
+.status-badge.error{background:rgba(212,100,128,.10);color:var(--rose);border:1px solid rgba(212,100,128,.25)}
+.status-badge.waiting{background:rgba(228,184,50,.12);color:#a07c10;border:1px solid rgba(228,184,50,.30)}
+.badge-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.success .badge-dot{background:var(--teal)}
+.error .badge-dot{background:var(--rose)}
+.waiting .badge-dot{background:var(--mustard);animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+h2{font-family:'Playfair Display',serif;font-size:1.35rem;font-weight:700;color:var(--navy);margin-bottom:6px;line-height:1.3}
+.subtitle{font-size:.82rem;color:var(--text-dim);line-height:1.65;margin-bottom:20px;font-weight:300}
+.subtitle strong{color:var(--text);font-weight:500}
+.code-label{font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.15em;color:var(--text-dim);margin-bottom:6px}
+.code-box{background:var(--bg);border:2px solid var(--border);border-radius:10px;padding:12px 14px;font-family:'Courier New',monospace;font-size:.72rem;color:var(--navy);word-break:break-all;line-height:1.6;margin-bottom:10px;user-select:all;cursor:text}
+.copy-btn{width:100%;padding:13px 16px;background:var(--coral);color:#fff;border:none;border-radius:10px;font-family:'Outfit',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .15s;margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:8px}
+.copy-btn:active{transform:scale(.96);background:#d8603e}
+.copy-btn.copied{background:var(--teal)}
+.copy-btn svg{width:16px;height:16px;flex-shrink:0}
+.divider{border:none;height:2px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin:0 0 18px}
+.steps-label{font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.15em;color:var(--text-dim);margin-bottom:12px}
+.steps{display:flex;flex-direction:column;gap:8px}
+.step{display:flex;gap:12px;align-items:flex-start;padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:10px}
+.step-num{width:22px;height:22px;background:var(--navy);color:#fff;font-size:.65rem;font-weight:600;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step-text{font-size:.8rem;color:var(--text-dim);line-height:1.55;font-weight:300;padding-top:2px}
+.step-text strong{color:var(--text);font-weight:500}
+.error-detail{background:rgba(212,100,128,.07);border:2px solid rgba(212,100,128,.2);border-radius:10px;padding:12px 14px;font-size:.8rem;color:var(--rose);font-family:'Courier New',monospace;margin-bottom:18px;word-break:break-all;line-height:1.5}
+.back-btn{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--teal-dark);font-weight:500;cursor:pointer;background:none;border:none;font-family:'Outfit',sans-serif;padding:0;transition:color .15s}
+.back-btn:hover{color:var(--teal)}
+.waiting-row{display:flex;align-items:center;gap:10px;padding:14px;background:var(--bg);border:2px solid var(--border);border-radius:10px;font-size:.82rem;color:var(--text-dim);font-weight:300}
+.spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--mustard);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.footer{text-align:center;margin-top:20px;font-size:.68rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.15em;font-weight:500}
 </style>
 </head>
 <body>
-<div class="page">
-  <div class="wordmark">KYOTO</div>
+<div class="container">
+  <div class="header">
+    <h1>KYOTO</h1>
+    <p>Spotify Connect</p>
+    <div class="header-deco"></div>
+  </div>
   <div class="card" id="card"></div>
-  <div class="footer">kyoto player — spotify connect</div>
+  <div class="footer">kyoto player &mdash; account setup</div>
 </div>
-
 <script>
-(function() {
-  const params = new URLSearchParams(window.location.search);
-  const code  = params.get('code');
-  const error = params.get('error');
-  const card  = document.getElementById('card');
-
-  // ── Icons ──
-  const iconCheck = `<svg viewBox="0 0 24 24" fill="none" stroke="#4a9e6b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
-  const iconX     = `<svg viewBox="0 0 24 24" fill="none" stroke="#c05050" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
-  const iconClock = `<svg viewBox="0 0 24 24" fill="none" stroke="#c8922a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
-  const iconCopy  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
-  const iconDone  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
-
-  function copyCode(code) {
-    navigator.clipboard.writeText(code).then(() => {
-      const btn = document.getElementById('copy-btn');
+(function(){
+  const params=new URLSearchParams(window.location.search);
+  const code=params.get('code');
+  const error=params.get('error');
+  const card=document.getElementById('card');
+  const iconCopy='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+  const iconDone='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  function copyCode(c){
+    navigator.clipboard.writeText(c).then(()=>{
+      const btn=document.getElementById('copy-btn');
       btn.classList.add('copied');
-      btn.innerHTML = `${iconDone} Copied`;
-      setTimeout(() => {
-        btn.classList.remove('copied');
-        btn.innerHTML = `${iconCopy} Copy authorisation code`;
-      }, 2500);
+      btn.innerHTML=iconDone+' Copied to clipboard';
+      setTimeout(()=>{btn.classList.remove('copied');btn.innerHTML=iconCopy+' Copy authorisation code';},2500);
+    }).catch(()=>{
+      const box=document.getElementById('code-display');
+      const r=document.createRange();r.selectNode(box);
+      window.getSelection().removeAllRanges();window.getSelection().addRange(r);
     });
   }
-
-  if (code) {
-    // ── Success state ──
-    card.innerHTML = `
-      <div class="card-icon success">${iconCheck}</div>
-      <h1>Authorisation complete</h1>
-      <p class="subtitle">
-        Copy the code below and paste it into the
-        <strong>KYOTO setup page</strong> at
-        <strong>http://10.10.10.1/setup</strong>
-      </p>
-
+  if(code){
+    card.innerHTML=`
+      <div class="status-badge success"><span class="badge-dot"></span> Authorised</div>
+      <h2>Connected to Spotify</h2>
+      <p class="subtitle">Copy the code below and paste it into the <strong>KYOTO setup page</strong> at <strong>http://10.10.10.1/setup</strong></p>
       <div class="code-label">Authorisation code</div>
       <div class="code-box" id="code-display">${code}</div>
-
-      <button class="copy-btn" id="copy-btn" onclick="copyCode('${code}')">
-        ${iconCopy} Copy authorisation code
-      </button>
-
+      <button class="copy-btn" id="copy-btn" onclick="window._copy('${code}')">${iconCopy} Copy authorisation code</button>
       <div class="divider"></div>
-
+      <div class="steps-label">Next steps</div>
       <div class="steps">
-        <div class="step">
-          <span class="step-num">01</span>
-          <span class="step-text">Switch to the <strong>KYOTO setup tab</strong> in your browser</span>
-        </div>
-        <div class="step">
-          <span class="step-num">02</span>
-          <span class="step-text">Paste the code into the <strong>Authorisation Code</strong> field</span>
-        </div>
-        <div class="step">
-          <span class="step-num">03</span>
-          <span class="step-text">Tap <strong>Connect</strong> — KYOTO will exchange the code for tokens automatically</span>
-        </div>
-        <div class="step">
-          <span class="step-num">04</span>
-          <span class="step-text">You won't need to do this again — tokens refresh silently in the background</span>
-        </div>
-      </div>
-    `;
-
-    // expose for onclick
-    window.copyCode = copyCode;
-
-  } else if (error) {
-    // ── Error state ──
-    card.classList.add('error-card');
-    card.innerHTML = `
-      <div class="card-icon error">${iconX}</div>
-      <h1>Authorisation failed</h1>
+        <div class="step"><span class="step-num">1</span><span class="step-text">Switch to the <strong>KYOTO setup tab</strong> in your browser</span></div>
+        <div class="step"><span class="step-num">2</span><span class="step-text">Paste the code into the <strong>Authorisation Code</strong> field</span></div>
+        <div class="step"><span class="step-num">3</span><span class="step-text">Tap <strong>Connect</strong> — tokens are stored securely on the device</span></div>
+        <div class="step"><span class="step-num">4</span><span class="step-text">You won't need to do this again — tokens refresh automatically</span></div>
+      </div>`;
+    window._copy=copyCode;
+  } else if(error){
+    card.innerHTML=`
+      <div class="status-badge error"><span class="badge-dot"></span> Failed</div>
+      <h2>Authorisation failed</h2>
       <p class="subtitle">Spotify returned an error. Please go back and try again.</p>
       <div class="error-detail">${error}</div>
-      <button class="back-btn" onclick="history.back()">
-        ← Go back
-      </button>
-    `;
-
+      <button class="back-btn" onclick="history.back()">← Go back</button>`;
   } else {
-    // ── Waiting / no params state ──
-    card.innerHTML = `
-      <div class="card-icon waiting">${iconClock}</div>
-      <h1>Waiting for Spotify</h1>
-      <p class="subtitle">
-        Complete the authorisation in the Spotify window.<br>
-        This page will receive the code automatically.
-      </p>
-      <div style="display:flex;align-items:center;gap:0.75rem;color:var(--text-muted);font-size:0.8rem;">
-        <div class="spinner"></div>
-        Listening for callback…
-      </div>
-    `;
+    card.innerHTML=`
+      <div class="status-badge waiting"><span class="badge-dot"></span> Waiting</div>
+      <h2>Waiting for Spotify</h2>
+      <p class="subtitle">Complete the authorisation in the Spotify window.<br>This page will receive the code automatically.</p>
+      <div class="waiting-row"><div class="spinner"></div>Listening for callback…</div>`;
   }
 })();
 </script>
